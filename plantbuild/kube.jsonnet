@@ -1,39 +1,39 @@
 local k8s = import 'k8s.jsonnet';
 
-local k1cm = k8s.configmap(
+local appcm = k8s.configmap(
   namespace='testkit',
-  name='k1cm',
-  deployment='kit1',
+  name='appcm',
+  deployment='app',
   withoutVersion=true,
   data={
-    __THIS_IS_KIT11111__: 'YES',
+    __THIS_IS_APP__: 'YES',
   },
 );
 
-local k2cm = k8s.configmap(
+local cmscm = k8s.configmap(
   namespace='testkit',
-  name='k2cm',
-  deployment='kit2',
+  name='cmscm',
+  deployment='cms',
   withoutVersion=true,
   data={
-    __THIS_IS_KIT22222__: 'YES',
+    __THIS_IS_CMS__: 'YES',
   },
 );
 
-local kit1 = k8s.image_to_url(
+local app = k8s.image_to_url(
   namespace='testkit',
-  name='kit1',
-  host='kit1.testkit.local',
+  name='app',
+  host='app.testkit.local',
   image='sunfmin/testkit',
-  configmap='k1cm',
+  configmap='appcm',
 );
 
-local kit2 = k8s.image_to_url(
+local cms = k8s.image_to_url(
   namespace='testkit',
-  name='kit2',
-  host='kit2.testkit.local',
+  name='cms',
+  host='cms.testkit.local',
   image='sunfmin/testkit',
-  configmap='k2cm',
+  configmap='cmscm',
 );
 
 local ing = k8s.ingress(
@@ -45,16 +45,23 @@ local ing = k8s.ingress(
       http: {
         paths: [
           {
-            path: '/kit1',
+            path: '/cms',
             backend: {
-              serviceName: 'kit1',
+              serviceName: 'cms',
+              servicePort: 4000,
+            },
+          },
+          {
+            path: '/.+',
+            backend: {
+              serviceName: 'app',
               servicePort: 4000,
             },
           },
           {
             path: '/',
             backend: {
-              serviceName: 'kit2',
+              serviceName: 'cms',
               servicePort: 4000,
             },
           },
@@ -71,9 +78,9 @@ local ing = k8s.ingress(
 
 
 k8s.list([
-  k1cm,
-  k2cm,
-  kit1,
-  kit2,
+  appcm,
+  cmscm,
+  app,
+  cms,
   ing,
 ])
