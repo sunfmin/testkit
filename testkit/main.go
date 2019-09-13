@@ -23,6 +23,10 @@ func main() {
 		}
 		fmt.Fprintf(w, string(b))
 	})
-	log.Println("starting at :4000")
-	log.Fatal(http.ListenAndServe(":4000", nil))
+	port := os.Getenv("PORT")
+	if len(port) == 0 {
+		port = "4000"
+	}
+	log.Println("starting at :" + port)
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
